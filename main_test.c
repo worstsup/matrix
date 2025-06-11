@@ -55,7 +55,6 @@ int main() {
                 hash_table_set(table, teachers[k].full_name, &teachers[k]);
             }
             fprintf(collisions_file, "%ld %ld\n", current_size, table->collisions);
-            const char* key_to_search = teachers[current_size / 2].full_name;
             clock_t start = clock();
             clock_t end = clock();
             double time_spent = (double)(end - start) / CLOCKS_PER_SEC;

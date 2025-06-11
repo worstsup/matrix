@@ -161,11 +161,9 @@ void hash_table_set(HashTable* table, const char* key, void* value) {
     unsigned long long raw_hash = table->hash_func(key);
     long index = (long)(raw_hash % table->capacity);
     long original_index = index;
-    if (table->entries[index].key != NULL && strcmp(table->entries[index].key, key) != 0) {
-        table->collisions++;
-    }
     // Линейное пробирование для поиска нужного слота
     while (table->entries[index].key != NULL && strcmp(table->entries[index].key, key) != 0) {
+        table->collisions++;
         index = (index + 1) % table->capacity;
         if (index == original_index) { // Таблица заполнена
             return;
@@ -180,15 +178,15 @@ void hash_table_set(HashTable* table, const char* key, void* value) {
 
     if (table->entries[index].key == NULL) {
         // Новый ключ: вставляем в первый раз
-        table->entries[index].key = strdup(key); // Копируем ключ
+        table->entries[index].key = strdup(key);
         if(!table->entries[index].key){
             free(newNode);
             return;
         }
         table->entries[index].head = newNode;
         table->size++;
-    } else {
-        // Ключ уже существует: добавляем значение в начало списка
+    }
+    else {
         newNode->next = table->entries[index].head;
         table->entries[index].head = newNode;
     }

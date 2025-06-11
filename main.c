@@ -9,7 +9,6 @@ int main() {
     srand(time(NULL));
 
     const long size = 500000;
-    // Генерируем массив структур School длины size
     School* teachers = genArray(size);
     if (!teachers) {
         return 1;
@@ -38,7 +37,6 @@ int main() {
     printf("Collisions: %ld\n", hash_table->collisions);
 
 
-    // Поиск по ключу
     printf("\nEnter a key (full name) to search: ");
     char key[MAX_LENGTH];
     if (fgets(key, sizeof(key), stdin) == NULL) {
@@ -46,7 +44,6 @@ int main() {
     } 
     else {
         key[strcspn(key, "\n")] = 0;
-        // Получаем указатель на голову списка найденных записей
         RecordNode* found_records = hash_table_get(hash_table, key);
         if (found_records == NULL) {
             printf("No records found\n");
@@ -54,7 +51,6 @@ int main() {
         else {
             printf("Found records:\n");
             int count = 0;
-            // Проходим по всему связанному списку и печатаем каждую запись
             for (RecordNode* current = found_records; current != NULL; current = current->next) {
                 count++;
                 printf("Record %d:\n", count);
@@ -63,8 +59,6 @@ int main() {
             }
         }
     }
-
-    // Освобождаем память
     destroy_hash_table(hash_table);
     free(teachers);
     return 0;
