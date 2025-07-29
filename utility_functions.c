@@ -2,230 +2,330 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <stdbool.h>
+#include <math.h>
 #include "struct.h"
 
-// Функции генерации данных
-
-void generate_full_name(char* full_name) {
-    const char* first_names[] = {
-        "John", "Mikhail", "Jack", "Emma", "Mike", "Sarah", "Tom", "Lucy", "Sam", "Grace",
-        "Ashab", "Vitaliy", "Kirill", "Mell", "Ivan", "Alexander", "Elena", "Dmitry", "Sophia", "Daniel",
-        "Boris", "Vladimir", "Anatoly", "Sergei", "Nikolai", "Andrei", "Pavel", "Oleg", "Igor", "Maxim",
-        "Artem", "Roman", "Yuri", "Viktor", "Konstantin", "Ruslan", "Vadim", "Evgeny", "Timur", "Gleb",
-        "Valery", "Leonid", "Grigory", "Arseniy", "Denis", "Stanislav", "Fyodor", "Anton", "Alexey", "Ilya",
-        "Maria", "Anna", "Tatiana", "Olga", "Natalia", "Svetlana", "Irina", "Ekaterina", "Galina", "Valentina"
-    };
-    const char* patronymics[] = {
-        "Ivanovich", "Petrovich", "Sergeevich", "Alexandrovich", "Dmitrievich", "Andreevich", "Nikolaevich", "Mikhailovich", "Vladimirovich", "Alekseevich",
-        "Borisovich", "Victorovich", "Pavlovich", "Vasilievich", "Grigorievich", "Romanovich", "Fedorovich", "Antonovich", "Anatolievich", "Konstantinovich",
-        "Leonidovich", "Genadievich", "Valeryevich", "Arsenievich", "Denisovich", "Stanislavovich", "Olegovich", "Yuryevich", "Maksimovich", "Igorevich",
-        "Ivanovna", "Petrovna", "Sergeevna", "Alexandrovna", "Dmitrievna", "Andreevna", "Nikolaevna", "Mikhailovna", "Vladimirovna", "Alekseevna",
-        "Borisovna", "Victorovna", "Pavlovna", "Vasilievna", "Grigorievna", "Romanovna", "Fedorovna", "Antonovna", "Anatolievna", "Konstantinovna",
-        "Leonidovna", "Genadievna", "Valeryevna", "Arsenievna", "Denisovna", "Stanislavovna", "Olegovna", "Yuryevna", "Maksimovna", "Igorevna"
-    };
-    const char* last_names[] = {
-        "Wick", "Litvin", "Daniels", "Watson", "Tyson", "Davis", "Miller", "Wilson", "Taylor", "Moore",
-        "Tamaev", "Tsal", "Pavlov", "Stroy", "Zolo", "Smith", "Johnson", "Williams", "Brown", "Jones",
-        "Ivanov", "Petrov", "Sidorov", "Kuznetsov", "Popov", "Sokolov", "Lebedev", "Kozlov", "Novikov", "Morozov",
-        "Volkov", "Alekseev", "Romanov", "Smirnov", "Fedorov", "Golubev", "Vinogradov", "Bogdanov", "Vorobyov", "Andreev",
-        "Stepanov", "Yakovlev", "Sorokin", "Mikhailov", "Belov", "Orlov", "Kiselev", "Makarov", "Zaytsev", "Loginov",
-        "Kovalev", "Korolev", "Gusev", "Titov", "Semenov", "Vasiliev", "Nikolaev", "Krylov", "Nikitin", "Isakov"
-    };
-    int first_index = rand() % 60;
-    int patronymic_index = rand() % 60;
-    int last_index = rand() % 60;
-    snprintf(full_name, MAX_LENGTH, "%s %s %s", first_names[first_index], patronymics[patronymic_index], last_names[last_index]);
-}
-
-void generate_quailification(char* qualification) {
-    const char* qualifications[] = { "First", "Second", "High" };
-    int index = rand() % 3;
-    strncpy(qualification, qualifications[index], MAX_LENGTH-1);
-    qualification[MAX_LENGTH-1] = '\0';
-}
-
-void generate_home_address(char* home_address) {
-    const char* home_addresses[] = { "Litvinburg", "Bikini Bottom", "Mondstadt", "Springfield", "Cheboksary", "Kanash", "Pukovo", "Tsivilsk", "Odintsovo", "Orehovo-Zuevo" };
-    int index = rand() % 10;
-    strncpy(home_address, home_addresses[index], MAX_LENGTH-1);
-    home_address[MAX_LENGTH-1] = '\0';
-}
-
-void generate_date_birth(char* date_birth) {
-    snprintf(date_birth, MAX_LENGTH, "%02d.%02d.%d", rand() % 28 + 1, rand() % 12 + 1, 1980 + rand() % 25);
-}
-
-void generate_phone_number(char* phone_number) {
-    snprintf(phone_number, MAX_LENGTH, "+7%03d%03d%02d%02d", rand() % 900+100, rand() % 900+100, rand() % 90+10, rand()%90+10);
-}
-
-void generate_employment_date(char* employment_date) {
-    snprintf(employment_date, MAX_LENGTH, "%02d.%02d.%d", rand() % 28 + 1, rand() % 12 + 1, 2010 + rand() % 14);
-}
-
-School* genArray(long n) {
-    School* a = (School*)malloc(n * sizeof(School));
-    if (!a) return NULL;
-    for (long i = 0; i < n; i++) {
-        generate_full_name(a[i].full_name);
-        generate_quailification(a[i].qualification);
-        generate_home_address(a[i].home_address);
-        generate_date_birth(a[i].date_birth);
-        generate_phone_number(a[i].phone_number);
-        generate_employment_date(a[i].employment_date);
-    }
-    return a;
-}
-
-const char* options[] = { "DJB2", "SDBM", "ROT13" };
-
-// DJB2
-hash_type hash_1(const char* data) {
-    unsigned long long hash = 5381;
-    char c;
-    while ((c = *data++)) {
-        hash = ((hash << 5) + hash) + c;
-    }
-    return hash;
-}
-
-// SDBM
-hash_type hash_2(const char* data) {
-    unsigned long long hash = 0;
-    int c;
-    while ((c = *data++)) {
-        hash = c + (hash << 6) + (hash << 16) - hash;
-    }
-    return hash;
-}
-
-// ROT13
-hash_type hash_3(const char* data) {
-    unsigned int hash = 0;
-    while (*data) {
-        hash += (unsigned char)*data++;
-        hash -= (hash << 13) | (hash >> 19);
-    }
-    return (hash_type)hash;
-}
-
-hash_func_type get_hash_func(const long option) {
-    switch (option) {
-        case 0: return hash_1;
-        case 1: return hash_2;
-        case 2: return hash_3;
-        default:
-            exit(1);
+void AllocateMatrix(Matrix *m, int rows, int cols) {
+    m->rows = rows;
+    m->cols = cols;
+    m->matrix = malloc(rows * sizeof(float*));
+    if (!m->matrix) exit(EXIT_FAILURE);
+    for (int i = 0; i < rows; i++) {
+        m->matrix[i] = malloc(cols * sizeof(float));
+        if (!m->matrix[i]) {
+            for (int j = 0; j < i; j++) {
+                free(m->matrix[j]);
+            }
+            free(m->matrix);
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
-HashTable* create_hash_table(const long capacity, const hash_func_type hash_func) {
-    HashTable* table = malloc(sizeof(HashTable));
-    if (!table) return NULL;
-    
-    table->capacity = capacity;
-    table->hash_func = hash_func;
-    table->size = 0;
-    table->collisions = 0;
-    table->entries = calloc(table->capacity, sizeof(HashTableEntry));
-    if (!table->entries) {
-        free(table);
-        return NULL;
+void FreeMatrix(Matrix *m) {
+    for(int i = 0; i < m->rows; i++) {
+        free(m->matrix[i]);
     }
-    return table;
+    free(m->matrix);
 }
 
-void destroy_hash_table(HashTable* table) {
-    if (!table) return;
-
-    for (long i = 0; i < table->capacity; i++) {
-        if (table->entries[i].key != NULL) {
-            // Освобождаем ключ, который был скопирован
-            free(table->entries[i].key);
-
-            // Освобождаем связанный список значений
-            RecordNode* current = table->entries[i].head;
-            while (current != NULL) {
-                RecordNode* to_free = current;
-                current = current->next;
-                free(to_free);
+void InputMatrix(Matrix *m) {
+    printf("Введите размер матрицы (n x m): ");
+    int rows, cols;
+    while (scanf("%d %d", &rows, &cols) != 2 || rows <= 0 || cols <= 0) {
+        printf("Неправильный ввод, введите натуральные числа для размера матрицы: ");
+        while(getchar() != '\n');
+    }
+    AllocateMatrix(m, rows, cols);
+    printf("Введите элементы матрицы размера %dx%d:\n", rows, cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            while (scanf("%f", &m->matrix[i][j]) != 1) {
+                printf("Неправильный ввод, введитте вещественное число для ячейки [%d][%d]: ", i, j);
+                while(getchar() != '\n');
             }
         }
     }
-    free(table->entries);
-    free(table);
 }
 
-void hash_table_set(HashTable* table, const char* key, void* value) {
-    unsigned long long raw_hash = table->hash_func(key);
-    long index = (long)(raw_hash % table->capacity);
-    long original_index = index;
-    // Линейное пробирование для поиска нужного слота
-    while (table->entries[index].key != NULL && strcmp(table->entries[index].key, key) != 0) {
-        table->collisions++;
-        index = (index + 1) % table->capacity;
-        if (index == original_index) { // Таблица заполнена
-            return;
+void PrintMatrix(const Matrix *m) {
+    int rows, cols;
+    rows = m->rows;
+    cols = m->cols;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++){
+            if (j == 0){
+                printf("| ");
+            }
+            printf("%.1f ", m->matrix[i][j]);
+            if (j == cols - 1) {
+                printf("|\n");
+            }
         }
-    }
-
-    // Создаем новый узел для списка значений
-    RecordNode* newNode = (RecordNode*)malloc(sizeof(RecordNode));
-    if (!newNode) return;
-    newNode->value = value;
-    newNode->next = NULL;
-
-    if (table->entries[index].key == NULL) {
-        // Новый ключ: вставляем в первый раз
-        table->entries[index].key = strdup(key);
-        if(!table->entries[index].key){
-            free(newNode);
-            return;
-        }
-        table->entries[index].head = newNode;
-        table->size++;
-    }
-    else {
-        newNode->next = table->entries[index].head;
-        table->entries[index].head = newNode;
     }
 }
 
-// Поиск элемента. Возвращает указатель на голову списка значений.
-RecordNode* hash_table_get(HashTable* table, const char* key) {
-    unsigned long long raw_hash = table->hash_func(key);
-    long index = (long)(raw_hash % table->capacity);
-    long original_index = index;
+float TraceMatrix(Matrix *m) {
+    float trace = 0.0;
+    if (m->rows != m->cols) {
+        printf("След может быть вычислен только для квадратных матриц.\n");
+        return 0.0f;
+    }
+    int n;
+    n = m->rows;
+    for (int i = 0; i < n; i++) {
+        trace += m->matrix[i][i];
+    }
+    m->trace = trace;
+    return trace;
+}
 
-    // Линейное пробирование
-    while (table->entries[index].key != NULL) {
-        if (strcmp(table->entries[index].key, key) == 0) {
-            return table->entries[index].head; // Ключ найден
+Matrix MinorMatrix(const Matrix *m, int row, int col) {
+    Matrix minor;
+    AllocateMatrix(&minor, m->rows - 1, m->cols - 1);
+    for (int i = 0, mi = 0; i < m->rows; i++) {
+        if (i == row) continue;
+        for (int j = 0, mj = 0; j < m->cols; j++) {
+            if (j == col) continue;
+            minor.matrix[mi][mj++] = m->matrix[i][j];
         }
-        index = (index + 1) % table->capacity;
-        if (index == original_index) {
-            break; // Прошли полный круг
+        mi++;
+    }
+    return minor;
+}
+
+float AlgebraicComplementMatrix(const Matrix *m, int row, int col) {
+    Matrix minor = MinorMatrix(m, row, col);
+    float det_minor = DeterminantMatrix1(&minor);
+    FreeMatrix(&minor);
+    if ((row + col) % 2 == 0) return det_minor;
+    return -det_minor;
+}
+
+// Вычисление определителя матрицы с помощью разложения по первой строке (O(n!))
+float DeterminantMatrix1(const Matrix *m) {
+    if (m->rows != m->cols) {
+        printf("Определитель может быть вычислен только для квадратных матриц.\n");
+        return 0.0f;
+    }
+    int n = m->rows;
+    if (n <= 0) return 0;
+    if (n == 1) return m->matrix[0][0];
+    if (n == 2) {
+        return (m->matrix[0][0] * m->matrix[1][1] - m->matrix[0][1] * m->matrix[1][0]);
+    }
+    float det = 0;
+    for (int j = 0; j < n; j++) {
+        det += m->matrix[0][j] * AlgebraicComplementMatrix(m, 0, j);
+    }
+    return det;
+}
+
+bool IsUpperTriangularMatrix(const Matrix *m) {
+    int n = m->rows;
+    for (int i = 1; i < n; i++) {
+        for (int j = 0; j < i; j++) {
+            if (m->matrix[i][j] != 0.0f) {
+                return false;
+            }
         }
     }
-    return NULL; // Ключ не найден
+    return true;
+}
+
+int MakeUpperTriangularMatrix(Matrix *m, int *swap_count) {
+    if (swap_count) *swap_count = 0;
+    int rank = 0;
+    for (int c = 0, r = 0; c < m->cols && r < m->rows; c++) {
+        int max_row = r;
+        for (int i = r + 1; i < m->rows; i++) {
+            if (fabsf(m->matrix[i][c]) > fabsf(m->matrix[max_row][c])) {
+                max_row = i;
+            }
+        }
+        if (fabsf(m->matrix[max_row][c]) == 0.0f) {
+            continue;
+        }
+        if (max_row != r) {
+            float *tmp = m->matrix[r];
+            m->matrix[r] = m->matrix[max_row];
+            m->matrix[max_row] = tmp;
+            if (swap_count) (*swap_count)++;
+        }
+        for (int i = r + 1; i < m->rows; i++) {
+            float factor = m->matrix[i][c] / m->matrix[r][c];
+            for (int j = c; j < m->cols; j++) {
+                m->matrix[i][j] -= factor * m->matrix[r][j];
+            }
+            m->matrix[i][c] = 0.0f;
+        }
+        r++;
+        rank++;
+    }
+    return rank;
+}
+
+// Вычисление определителя методом Гаусса (O(n^3))
+float DeterminantMatrix2(const Matrix *m) {
+    if (m->rows != m->cols) {
+        printf("Определитель может быть вычислен только для квадратных матриц.\n");
+        return 0.0f;
+    }
+    if (m->rows <= 0) return 0.0f;
+    if (m->rows == 1) return m->matrix[0][0];
+    if (m->rows == 2) {
+        return (m->matrix[0][0] * m->matrix[1][1] - m->matrix[0][1] * m->matrix[1][0]);
+    }
+    Matrix tmp = CopyMatrix(m);
+    int swap_count = 0;
+    if (MakeUpperTriangularMatrix(&tmp, &swap_count) == 0) {
+        FreeMatrix(&tmp);
+        return 0.0f;
+    }
+    float det = 1.0;
+    for (int i = 0; i < tmp.rows; i++){
+        det *= tmp.matrix[i][i];
+    }
+    FreeMatrix(&tmp);
+    if (swap_count % 2 != 0) return -det;
+    return det;
+}
+
+Matrix CopyMatrix(const Matrix *m) {
+    Matrix copy;
+    AllocateMatrix(&copy, m->rows, m->cols);
+    for (int i = 0; i < m->rows; i++) {
+        for (int j = 0; j < m->cols; j++) {
+            copy.matrix[i][j] = m->matrix[i][j];
+        }
+    }
+    return copy;
+}
+
+void SimplifyUpperTriangularMatrix(Matrix *m) {
+    if (!IsUpperTriangularMatrix(m)) {
+        printf("Матрица не верхняя треугольная\n");
+        return;
+    }
+    for (int i = 0; i < m->rows; i++) {
+        if (m->matrix[i][i] != 0.0f) {
+            float diag = m->matrix[i][i];
+            for (int k = i; k < m->cols; k++) {
+                if (m->matrix[i][k] != 0.0f) m->matrix[i][k] /= diag;
+            }
+        }
+    }
+}
+
+Matrix SumMatrix(const Matrix *m1, const Matrix *m2) {
+    if (m1->cols != m2->cols || m1->rows != m2->rows) {
+        printf("Матрицы должны быть одного размера для суммирования\n");
+        exit(EXIT_FAILURE);
+    }
+    Matrix sum;
+    AllocateMatrix(&sum, m1->rows, m1->cols);
+    for (int i = 0; i < m1->rows; i++) {
+        for (int j = 0; j < m1->cols; j++) {
+            sum.matrix[i][j] = m1->matrix[i][j] + m2->matrix[i][j];
+        }
+    }
+    return sum;
+}
+
+Matrix MultMatrix(const Matrix *m1, const Matrix *m2) {
+    if (m1->cols != m2->rows) {
+        printf("Неподходящие размеры матриц для умножения\n");
+        exit(EXIT_FAILURE);
+    }
+    Matrix mult;
+    AllocateMatrix(&mult, m1->rows, m2->cols);
+    for (int i = 0; i < m1->rows; i++) {
+        for (int j = 0; j < m2->cols; j++) {
+            mult.matrix[i][j] = 0.0f;
+            for (int k = 0; k < m1->cols; k++) {
+                mult.matrix[i][j] += m1->matrix[i][k] * m2->matrix[k][j];
+            }
+        }
+    }
+    return mult;
+}
+
+Matrix ExponentMatrix(const Matrix *m, int n) {
+    if (n < 0) {
+        printf("Неверно введена степень\n");
+        exit(EXIT_FAILURE);
+    }
+    if (m->rows != m->cols) {
+        printf("Возведение в степень возможно только для квадратных матриц\n");
+        exit(EXIT_FAILURE);
+    }
+    Matrix result = MakeIdentMatrix(m->rows);
+
+    for (int i = 0; i < n; i++) {
+        Matrix temp = MultMatrix(&result, m);
+        FreeMatrix(&result);
+        result = temp;
+    }
+    return result;
+}
+
+Matrix MakeIdentMatrix(int n) {
+    Matrix m;
+    AllocateMatrix(&m, n, n);
+    for (int i = 0; i < m.rows; i++) {
+        for (int j = 0; j < m.cols; j++) {
+            if (i == j) {
+                m.matrix[i][j] = 1.0f;
+            } else {
+                m.matrix[i][j] = 0.0f;
+            }
+        }
+    }
+    return m;
+}
+
+Matrix TransposeMatrix(const Matrix *m) {
+    Matrix transpose;
+    AllocateMatrix(&transpose, m->cols, m->rows);
+    for (int i = 0; i < m->cols; i++) {
+        for (int j = 0; j < m->rows; j++) {
+            transpose.matrix[i][j] = m->matrix[j][i];
+        }
+    }
+    return transpose;
+}
+
+Matrix InverseMatrix(const Matrix *m) {
+    float det = DeterminantMatrix2(m);
+    if (det == 0.0f) {
+        printf("Matrix is singular, no inverse\n");
+        exit(EXIT_FAILURE);
+    }
+    Matrix inverse;
+    int n = m->rows;
+    AllocateMatrix(&inverse, n, n);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            inverse.matrix[i][j] = AlgebraicComplementMatrix(m, i, j) / det;
+        }
+    }
+    Matrix result = TransposeMatrix(&inverse);
+    FreeMatrix(&inverse);
+    return result;
 }
 
 
-// Функции вывода 
-
-void print_school_data(const School* rec) {
-    if (rec == NULL) return;
-    printf("  Name: %s, Qual: %s, Address: %s, DoB: %s, Phone: %s, Hired: %s\n",
-           rec->full_name, rec->qualification, rec->home_address,
-           rec->date_birth, rec->phone_number, rec->employment_date);
-}
-
-void printSchoolArray(const School* arr, long n, const char* title) {
-    printf("\n=== %s ===\n", title);
-    for (long i = 0; i < n; i++) {
-        printf("Element %ld: ", i + 1);
-        print_school_data(&arr[i]);
-    }
-    printf("\n");
+void ShowMenu() {
+    printf("\n====== МАТРИЧНЫЙ КАЛЬКУЛЯТОР ======\n");
+    printf("1. Ввести матрицу\n");
+    printf("2. Вывести матрицу\n");
+    printf("3. След матрицы\n");
+    printf("4. Определитель матрицы\n");
+    printf("5. Транспонирование\n");
+    printf("6. Обратная матрица\n");
+    printf("7. Умножение на другую матрицу\n");
+    printf("8. Возведение в степень\n");
+    printf("0. Выход\n");
+    printf("Выберите опцию: ");
 }

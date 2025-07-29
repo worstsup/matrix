@@ -2,64 +2,119 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <stdbool.h>
+#include <locale.h>
+#include <math.h>
 #include "struct.h"
 
 int main() {
-    srand(time(NULL));
+    setlocale(LC_ALL, "Russian");
+    Matrix A;
+    bool hasMatrix = false;
+    int option;
+    do {
+        ShowMenu();
+        scanf("%d", &option);
 
-    const long size = 500000;
-    School* teachers = genArray(size);
-    if (!teachers) {
-        return 1;
-    }
-    
-    printf("\nAvailable hash functions:\n1. %s\n2. %s\n3. %s\n", options[0], options[1], options[2]);
-    printf("Choose hash function (1-3): ");
-    
-    int option_choice;
-    if (scanf("%d", &option_choice) != 1 || option_choice < 1 || option_choice > 3) {
-        fprintf(stderr, "Invalid input. Please enter a number between 1 and 3.\n");
-        free(teachers);
-        return 1;
-    }
-    while(getchar() != '\n'); 
-    int option_index = option_choice - 1;
-    HashTable* hash_table = create_hash_table(size * 2, get_hash_func(option_index));
-    if (!hash_table) {
-        free(teachers);
-        return 1;
-    }
-    for (long i = 0; i < size; i++) {
-        hash_table_set(hash_table, teachers[i].full_name, &teachers[i]);
-    }
-    printf("Hash table has been created and filled.\n");
-    printf("Collisions: %ld\n", hash_table->collisions);
+        switch (option) {
+            case 1:
+                if (hasMatrix) {
+                    FreeMatrix(&A);
+                }
+                InputMatrix(&A);
+                hasMatrix = true;
+                break;
 
+            case 2:
+                if (hasMatrix) {
+                    PrintMatrix(&A);
+                } else {
+                    printf("Матрица ещё не введена.\n");
+                }
+                break;
 
-    printf("\nEnter a key (full name) to search: ");
-    char key[MAX_LENGTH];
-    if (fgets(key, sizeof(key), stdin) == NULL) {
-        fprintf(stderr, "No input received for search key.\n");
-    } 
-    else {
-        key[strcspn(key, "\n")] = 0;
-        RecordNode* found_records = hash_table_get(hash_table, key);
-        if (found_records == NULL) {
-            printf("No records found\n");
+            case 3:
+                if (hasMatrix) {
+                    float tr = TraceMatrix(&A);
+                    printf("След матрицы: %.2f\n", tr);
+                } else {
+                    printf("Матрица ещё не введена.\n");
+                }
+                break;
+
+            case 4:
+                if (hasMatrix) {
+                    float det = DeterminantMatrix2(&A);
+                    printf("Определитель: %.2f\n", det);
+                } else {
+                    printf("Матрица ещё не введена.\n");
+                }
+                break;
+
+            case 5:
+                if (hasMatrix) {
+                    Matrix T = TransposeMatrix(&A);
+                    printf("Транспонированная матрица:\n");
+                    PrintMatrix(&T);
+                    FreeMatrix(&T);
+                } else {
+                    printf("Матрица ещё не введена.\n");
+                }
+                break;
+
+            case 6:
+                if (hasMatrix) {
+                    Matrix Inv = InverseMatrix(&A);
+                    printf("Обратная матрица:\n");
+                    PrintMatrix(&Inv);
+                    FreeMatrix(&Inv);
+                } else {
+                    printf("Матрица ещё не введена.\n");
+                }
+                break;
+
+            case 7:
+                if (hasMatrix) {
+                    printf("Введите вторую матрицу для умножения:\n");
+                    Matrix B;
+                    InputMatrix(&B);
+                    Matrix R = MultMatrix(&A, &B);
+                    printf("Результат умножения:\n");
+                    PrintMatrix(&R);
+                    FreeMatrix(&B);
+                    FreeMatrix(&R);
+                } else {
+                    printf("Матрица ещё не введена.\n");
+                }
+                break;
+
+            case 8:
+                if (hasMatrix) {
+                    int n;
+                    printf("Введите степень: ");
+                    scanf("%d", &n);
+                    Matrix P = ExponentMatrix(&A, n);
+                    printf("Результат возведения в степень %d:\n", n);
+                    PrintMatrix(&P);
+                    FreeMatrix(&P);
+                } else {
+                    printf("Матрица ещё не введена.\n");
+                }
+                break;
+
+            case 0:
+                printf("Выход из программы.\n");
+                break;
+
+            default:
+                printf("Неверная опция.\n");
         }
-        else {
-            printf("Found records:\n");
-            int count = 0;
-            for (RecordNode* current = found_records; current != NULL; current = current->next) {
-                count++;
-                printf("Record %d:\n", count);
-                print_school_data((School*)current->value);
-                printf("------------------------\n");
-            }
-        }
+
+    } while (option != 0);
+
+    if (hasMatrix) {
+        FreeMatrix(&A);
     }
-    destroy_hash_table(hash_table);
-    free(teachers);
+
     return 0;
 }
